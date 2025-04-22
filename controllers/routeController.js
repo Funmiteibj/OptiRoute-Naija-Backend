@@ -58,3 +58,22 @@ exports.updateRoute = async (req, res) => {
     }
   };
   
+
+// Search routes 
+exports.searchRoutes = async (req, res) => {
+    try {
+        const { state, from, to, transportType } = req.body;
+        const query = {};
+
+        if (state) query.state = state;
+        if (from) query.from = from;
+        if (to) query.to = to;
+        if (transportType) query.transportType = transportType;
+
+        const routes = await Route.find(query);
+        res.json(routes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
