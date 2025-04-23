@@ -20,13 +20,39 @@ exports.getRoutes = async (req, res) => {
 
 exports.createRoute = async (req, res) => {
     try {
-        const route = new Route(req.body);
+        const {
+            state,
+            from,
+            to,
+            transportType,
+            price = "",
+            waitTime = "",
+            submittedBy = "",
+            description = "", // 💡 include this
+        } = req.body;
+
+        if (!state || !from || !to || !transportType) {
+            return res.status(400).json({ message: "Missing required fields." });
+        }
+
+        const route = new Route({
+            state,
+            from,
+            to,
+            transportType,
+            price,
+            waitTime,
+            submittedBy,
+            description, // 💡 include this
+        });
+
         await route.save();
         res.status(201).json(route);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 };
+
 
 // Update a route by ID
 exports.updateRoute = async (req, res) => {
