@@ -31,33 +31,33 @@ exports.createRoute = async (req, res) => {
 // Update a route by ID
 exports.updateRoute = async (req, res) => {
     try {
-      const updatedRoute = await Route.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true } // return the updated document
-      );
-      if (!updatedRoute) {
-        return res.status(404).json({ message: "Route not found" });
-      }
-      res.json(updatedRoute);
+        const updatedRoute = await Route.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true } // return the updated document
+        );
+        if (!updatedRoute) {
+            return res.status(404).json({ message: "Route not found" });
+        }
+        res.json(updatedRoute);
     } catch (err) {
-      res.status(400).json({ error: err.message });
+        res.status(400).json({ error: err.message });
     }
-  };
-  
-  // Delete a route by ID
-  exports.deleteRoute = async (req, res) => {
+};
+
+// Delete a route by ID
+exports.deleteRoute = async (req, res) => {
     try {
-      const deletedRoute = await Route.findByIdAndDelete(req.params.id);
-      if (!deletedRoute) {
-        return res.status(404).json({ message: "Route not found" });
-      }
-      res.json({ message: "Route deleted successfully" });
+        const deletedRoute = await Route.findByIdAndDelete(req.params.id);
+        if (!deletedRoute) {
+            return res.status(404).json({ message: "Route not found" });
+        }
+        res.json({ message: "Route deleted successfully" });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
-  };
-  
+};
+
 
 // Search routes 
 exports.searchRoutes = async (req, res) => {
@@ -72,6 +72,21 @@ exports.searchRoutes = async (req, res) => {
 
         const routes = await Route.find(query);
         res.json(routes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getRoutesByState = async (req, res) => {
+    try {
+        const { state } = req.params;
+        const routes = await Route.find({ state });
+
+        // Extract unique "from" and "to" bus stops from routes
+        const fromStops = [...new Set(routes.map(route => route.from))];
+        const toStops = [...new Set(routes.map(route => route.to))];
+
+        res.json({ fromStops, toStops });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
