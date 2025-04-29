@@ -20,7 +20,7 @@ exports.getRoutes = async (req, res) => {
 
 exports.createRoute = async (req, res) => {
     try {
-        const {
+        let {
             state,
             from,
             to,
@@ -28,11 +28,30 @@ exports.createRoute = async (req, res) => {
             price = "",
             waitTime = "",
             submittedBy = "",
-            description = "", // 💡 include this
+            description = "",
         } = req.body;
 
         if (!state || !from || !to || !transportType) {
             return res.status(400).json({ message: "Missing required fields." });
+        }
+
+        // Normalize for consistency
+        from = from.trim().toLowerCase();
+        to = to.trim().toLowerCase();
+
+        // Check for duplicate with same exact details
+        const existingRoute = await Route.findOne({
+            state,
+            from,
+            to,
+            transportType,
+            price,
+            waitTime,
+            description,
+        });
+
+        if (existingRoute) {
+            return res.status(409).json({ message: "❌ This route has already been submitted with identical details." });
         }
 
         const route = new Route({
@@ -43,15 +62,17 @@ exports.createRoute = async (req, res) => {
             price,
             waitTime,
             submittedBy,
-            description, // 💡 include this
+            description,
         });
 
         await route.save();
         res.status(201).json(route);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        console.error("Error creating route:", err);
+        res.status(500).json({ message: "Server error while creating route." });
     }
 };
+
 
 
 // Update a route by ID
