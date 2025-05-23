@@ -1,7 +1,14 @@
 const Route = require("../models/Route");
 
+// Create a new route
 const createRoute = async (req, res) => {
     try {
+        const { state, from, to, transportType } = req.body;
+
+        if (!state || !from || !to || !transportType) {
+            return res.status(400).json({ message: "All fields (state, from, to, transportType) are required" });
+        }
+
         const newRoute = new Route(req.body);
         const savedRoute = await newRoute.save();
         res.status(201).json(savedRoute);
@@ -10,6 +17,7 @@ const createRoute = async (req, res) => {
     }
 };
 
+// Get all routes
 const getAllRoutes = async (req, res) => {
     try {
         const routes = await Route.find();
@@ -19,6 +27,7 @@ const getAllRoutes = async (req, res) => {
     }
 };
 
+// Get a route by ID
 const getRouteById = async (req, res) => {
     try {
         const route = await Route.findById(req.params.id);
@@ -29,6 +38,7 @@ const getRouteById = async (req, res) => {
     }
 };
 
+// Update a route by ID
 const updateRoute = async (req, res) => {
     try {
         const updatedRoute = await Route.findByIdAndUpdate(req.params.id, req.body, {
@@ -40,6 +50,7 @@ const updateRoute = async (req, res) => {
     }
 };
 
+// Delete a route by ID
 const deleteRoute = async (req, res) => {
     try {
         await Route.findByIdAndDelete(req.params.id);
@@ -49,25 +60,32 @@ const deleteRoute = async (req, res) => {
     }
 };
 
+// Get distinct fromStops and toStops by state
 const getRoutesByState = async (req, res) => {
     const { state } = req.params;
 
     try {
-        const routes = await Route.find({ state: state });
-        res.status(200).json(routes);
+        const routes = await Route.find({ state });
+
+        const fromStops = [...new Set(routes.map(route => route.from))];
+        const toStops = [...new Set(routes.map(route => route.to))];
+
+        res.status(200).json({ fromStops, toStops });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch routes by state", error: error.message });
     }
 };
 
+// Search for routes using request body (POST)
 const searchRoutes = async (req, res) => {
-    const { from, to, state } = req.query;
+    const { from, to, state, transportType } = req.body;
 
     try {
         const query = {};
         if (from) query.from = from;
         if (to) query.to = to;
         if (state) query.state = state;
+        if (transportType) query.transportType = transportType;
 
         const routes = await Route.find(query);
         res.status(200).json(routes);
@@ -76,6 +94,7 @@ const searchRoutes = async (req, res) => {
     }
 };
 
+// Export all controllers
 module.exports = {
     createRoute,
     getAllRoutes,
